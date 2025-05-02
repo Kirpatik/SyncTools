@@ -1,0 +1,25 @@
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++17
+
+AlignAfterOpenBracket: Align
+AlignArrayOfStructures: Right
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: true
+BinPackParameters: true
+AllowAllArgumentsOnNextLine: true
+AllowAllParametersOfDeclarationOnNextLine: true
+BreakConstructorInitializers: BeforeColon
+BreakInheritanceList: BeforeColon
+InsertBraces: true
+BreakBeforeBraces: Allman
+DerivePointerAlignment: false
+PointerAlignment: Left
+SeparateDefinitionBlocks: Always
+AccessModifierOffset: -4
+SpacesBeforeTrailingComments: 2
+ColumnLimit: 120
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+MaxEmptyLinesToKeep: 1
