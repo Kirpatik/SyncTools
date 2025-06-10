@@ -27,7 +27,7 @@
 * **Object pools** - fast memory recycling with optional per-thread caches
 * **Futex-based High-Performance Mutex** - lightweight spin-then-block design with optional ThreadSanitizer & deadlock checks
 * Small footprint and comprehensive unit tests
-* CI builds on GCC & Clang with ~83% test coverage
+* CI builds on Clang with ~83% test coverage
 
 ## Quick Start
 

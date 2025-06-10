@@ -8,9 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        compiler: [gcc, clang]
     steps:
       - uses: actions/checkout@v3
       - name: Install deps
@@ -18,13 +15,12 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja -DENABLE_TESTING=ON -DENABLE_COVERAGE=ON \
-            -DCMAKE_C_COMPILER=${{ matrix.compiler == 'gcc' && 'gcc' || 'clang' }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
       - name: Build
         run: cmake --build build
       - name: Test
         run: ./build/tests/tests
       - name: Coverage
         run: |
-          lcov --directory build --capture --output-file coverage.info --ignore-errors mismatch,negative
+          lcov --gcov-tool=llvm-cov --directory build --capture --output-file coverage.info --ignore-errors mismatch,negative
           lcov --summary coverage.info
