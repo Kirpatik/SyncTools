@@ -43,7 +43,7 @@ TEST(ObjectPoolTests, DestructorRunsOnRelease)
 
 TEST(ThreadCachedObjectPoolTests, BasicAcquireRelease)
 {
-    ThreadCachedObjectPool<DestructorCounter> pool(4);
+    ThreadCachedObjectPool<DestructorCounter, 1> pool(4);
     int counter = 0;
     DestructorCounter* obj1 = pool.acquire(&counter);
     EXPECT_NE(obj1, nullptr);
