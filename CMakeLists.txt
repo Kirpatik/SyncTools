@@ -14,6 +14,7 @@ add_library(SyncTools::SyncTools ALIAS SyncTools)
 option(ENABLE_BENCHMARKS "Enable google Benchmark" OFF)
 option(ENABLE_TESTING    "Enable google tests"     OFF)
 option(BUILD_EXAMPLES    "Build Readme examples"   OFF)
+option(ENABLE_COVERAGE   "Enable coverage flags"   OFF)
 
 if(ENABLE_BENCHMARKS)
   add_subdirectory(benchmarks)

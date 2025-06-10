@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "work" ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y cmake ninja-build lcov libboost-dev libtbb-dev
+      - name: Configure
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            cmake -S . -B build -G Ninja -DENABLE_TESTING=ON \
+              -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          else
+            cmake -S . -B build -G Ninja -DENABLE_TESTING=ON -DENABLE_COVERAGE=ON \
+              -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+          fi
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ./build/tests/tests
+      - name: Coverage
+        if: matrix.compiler == 'gcc'
+        run: |
+          lcov --rc branch_coverage=1 --capture --directory build --output-file build/coverage.info --ignore-errors mismatch
+          lcov --rc branch_coverage=1 --remove build/coverage.info '/usr/*' --output-file build/coverage_clean.info
+          lcov --rc branch_coverage=1 --summary build/coverage_clean.info 

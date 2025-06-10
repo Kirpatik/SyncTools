@@ -1,5 +1,7 @@
 # SyncTools - Header-Only Concurrency Utilities
 
+[![Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](#)
+
 > A small collection of header-only C++17 helpers - fast queues, a futex-powered mutex, and a couple of object pools.
 
 ## Table of Contents
@@ -25,6 +27,7 @@
 * **Object pools** - fast memory recycling with optional per-thread caches
 * **Futex-based High-Performance Mutex** - lightweight spin-then-block design with optional ThreadSanitizer & deadlock checks
 * Small footprint and comprehensive unit tests
+* CI builds on GCC and Clang; coverage (~83%) is measured on GCC
 
 ## Quick Start
 
@@ -437,10 +440,10 @@ int main()
 
 ## Benchmarks
 
-All measurements were taken on a 6-core (12-thread) **AMD Ryzen 5 5600** (3.5 GHz base, 32 MB L3, Ubuntu 22.04) compiled with **clang 21**, flags `-O3 -march=native`, on **May 04 2025**.
+All measurements were taken on a 6-core (12-thread) **AMD Ryzen 5 5600** (3.5 GHz base, 32 MB L3, Ubuntu 22.04) compiled with **gcc 11.4.0**, flags `-O3 -march=native`, on **June 10 2025**.
 
 > **How to reproduce**
-> `mkdir build && cd build && cmake .. -DENABLE_BENCHMARKS=ON && make -j$(nproc) && ./benchmarks/benchmarks`
+> `mkdir build && cd build && cmake .. -DENABLE_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=Release && make -j$(nproc) && ./benchmarks/benchmarks`
 
 ---
 
@@ -464,33 +467,34 @@ Each Google-Benchmark fixture sets `state.SetIterationTime()` to wall-clock seco
 
 | Threads                  | std::mutex | SyncTools::Mutex | tbb::spin\_mutex | PThreadAdaptive | AbseilMutex |
 | ------------------------ | ---------: | ---------------: | ---------------: | --------------: | ----------: |
-| 1                        |       5.12 |         **3.40** |             2.57 |            6.80 |        3.95 |
-| 2                        |       37.6 |         **10.2** |             18.2 |            85.1 |        89.5 |
-| 4                        |       77.3 |         **30.1** |             73.3 |             353 |         295 |
-| 8                        |        193 |         **85.3** |              241 |             805 |         508 |
-| 16                       |        388 |          **175** |              464 |            1681 |         859 |
+| **Short lock**           |            |                  |                  |                 |             |
+| 1                        |       5.10 |         **3.52** |             3.03 |            6.62 |        4.20 |
+| 2                        |       34.2 |         **10.6** |             16.0 |            93.8 |         101 |
+| 4                        |       77.9 |         **29.2** |             72.3 |             391 |         297 |
+| 8                        |        182 |         **87.3** |              243 |            1006 |         576 |
+| 16                       |        382 |          **188** |              461 |            1766 |        1068 |
 | **Mixed lock**           |            |                  |                  |                 |             |
-| 1                        |       64.2 |         **59.5** |             59.4 |            62.1 |        43.4 |
-| 2                        |        405 |          **119** |              127 |             248 |         181 |
-| 4                        |        567 |          **271** |              255 |             600 |         332 |
-| 8                        |       1580 |          **716** |              668 |            1557 |         607 |
-| 16                       |       4457 |         **1415** |             1425 |            3953 |        1066 |
+| 1                        |       46.6 |         **50.7** |             47.7 |            51.0 |        52.2 |
+| 2                        |        244 |         **95.0** |             99.4 |             239 |         171 |
+| 4                        |        462 |          **191** |              219 |             545 |         534 |
+| 8                        |       1246 |          **490** |              547 |            1380 |         965 |
+| 16                       |       3642 |          **964** |             1136 |            3645 |        1847 |
 | **Fairness - avg. wait** |            |                  |                  |                 |             |
-| 1                        |       23.4 |         **22.8** |             23.2 |            23.2 |        22.9 |
-| 2                        |        102 |         **80.1** |             81.8 |             140 |        80.8 |
-| 4                        |        226 |          **195** |              216 |             401 |         299 |
-| 8                        |        547 |          **452** |              582 |             973 |         619 |
-| 16                       |       1504 |          **848** |             1059 |            2410 |        1224 |
+| 1                        |       24.5 |         **23.7** |             23.4 |            40.0 |        23.6 |
+| 2                        |        100 |         **85.4** |             85.3 |            77.6 |        85.7 |
+| 4                        |        405 |          **191** |              216 |             403 |         307 |
+| 8                        |        580 |          **435** |              608 |             980 |         521 |
+| 16                       |       1509 |          **792** |             1219 |            2552 |        1219 |
 
 ### 2. Queue throughput (million items/s, higher = better)
 
 | Queue                        |    0-fill |   8k fill |  16k fill |
 | ---------------------------- | --------: | --------: | --------: |
-| **Bounded MPSC** (SyncTools) | **10.20** | **10.12** | **10.47** |
-| Boost lock-free              |      4.18 |      4.26 |      4.19 |
-| TBB bounded                  |      5.50 |      4.97 |      4.54 |
-| **Bounded SPSC** (SyncTools) |  **1.48** |  **1.30** |  **1.41** |
-| Boost SPSC                   |      1.42 |      1.26 |      1.31 |
+| **Bounded MPSC** (SyncTools) |  **8.84** |  **9.49** |  **9.76** |
+| Boost lock-free              |      3.81 |      3.79 |      3.84 |
+| TBB bounded                  |      4.49 |      5.19 |      5.29 |
+| **Bounded SPSC** (SyncTools) |  **1.36** |  **1.42** |  **1.36** |
+| Boost SPSC                   |      1.36 |      1.50 |      1.47 |
 
 ### 3. Object pools & pipeline (items/s, higher = better)
 
@@ -498,34 +502,34 @@ Each Google-Benchmark fixture sets `state.SetIterationTime()` to wall-clock seco
 
 | Threads | Thread-cached pool             | TBB pool | ObjectPool       | new/delete |
 | ------- | -----------------------------: | -------: | ---------------: | ---------: |
-| 2       |                       **958M** |    67.8M |            52.4M |       100M |
-| 4       |                       **848M** |    58.6M |            18.7M |      92.8M |
-| 6       |                       **756M** |    52.8M |            10.3M |      75.8M |
-| 8       |                       **586M** |    44.4M |            6.54M |      67.8M |
-| 10      |                       **437M** |    35.4M |            4.59M |      60.7M |
-| 12      |                       **394M** |    32.2M |            3.61M |      51.4M |
-| 14      |                       **368M** |    30.8M |            3.19M |      49.6M |
-| 16      |                       **353M** |    32.3M |            2.77M |      49.2M |
+| 2       |                      **1.46G** |    73.8M |            52.4M |      98.9M |
+| 4       |                      **1.32G** |    70.1M |            19.2M |      84.4M |
+| 6       |                      **1.12G** |    61.2M |            10.7M |      79.8M |
+| 8       |                       **855M** |    52.9M |            6.90M |      66.2M |
+| 10      |                       **727M** |    46.9M |            4.92M |      60.1M |
+| 12      |                       **603M** |    40.1M |            3.84M |      52.3M |
+| 14      |                       **501M** |    37.5M |            3.31M |      46.6M |
+| 16      |                       **556M** |    38.3M |            2.90M |      50.0M |
 
 **3-stage pipeline**
 
-| Threads | Pipeline Thread-cached   | Pipeline TBB | Pipeline ObjectPool  | Pipeline new/delete |
-| ------- | -----------------------: | -----------: | -------------------: | ------------------: |
-| 2       |                 **46.2** |         10.8 |                 15.0 |                8.05 |
-| 4       |                 **36.6** |         9.29 |                 7.20 |                7.90 |
-| 6       |                 **37.3** |         9.97 |                 4.79 |                7.94 |
-| 8       |                 **35.8** |         8.73 |                 3.42 |                7.64 |
-| 10      |                 **35.4** |         8.65 |                 2.61 |                7.54 |
-| 12      |                 **31.9** |         7.01 |                 2.15 |                6.15 |
-| 14      |                 **27.4** |         6.72 |                 2.00 |                5.50 |
-| 16      |                 **22.6** |         5.24 |                 1.73 |                3.65 |
+| Threads | Pipeline Thread-cached    | Pipeline TBB  | Pipeline ObjectPool   | Pipeline new/delete  |
+| ------- | ------------------------: | ------------: | --------------------: | -------------------: |
+| 2       |                 **57.6M** |         11.6M |                 15.6M |                8.55M |
+| 4       |                 **49.9M** |         11.4M |                 7.59M |                8.32M |
+| 6       |                 **48.9M** |         10.7M |                 4.94M |                8.13M |
+| 8       |                 **45.2M** |         9.85M |                 3.71M |                7.46M |
+| 10      |                 **44.4M** |         10.1M |                 2.81M |                7.75M |
+| 12      |                 **39.8M** |         9.18M |                 2.27M |                7.24M |
+| 14      |                 **35.5M** |         7.04M |                 2.11M |                5.81M |
+| 16      |                 **26.2M** |         6.16M |                 1.82M |                4.96M |
 
 ### Key take-aways
 
-* **SyncTools::Mutex** outperforms std::mutex by 1.5-3.1x across contention levels and beats TBB & Abseil. Fairness test confirms lower wait times under pressure.
+* **SyncTools::Mutex** outperforms std::mutex by 1.9-3.7x across contention levels and beats TBB & Abseil. Fairness test confirms lower wait times under pressure.
 * The **bounded MPSC queue** sustains \~10M items/s, giving \~2.5x Boost and \~2x TBB throughput even when prefilled.
-* A **thread-cached object pool** delivers up to \~20x the throughput of TBB’s scalable allocator wrapper and is orders of magnitude ahead of naive allocation.
-* In a realistic 3-stage pipeline SyncTools moves \~35M items/s, tripling TBB performance.
+* A **thread-cached object pool** delivers up to \~15x the throughput of TBB’s scalable allocator wrapper and is orders of magnitude ahead of naive allocation.
+* In a realistic 3-stage pipeline SyncTools moves \~26M items/s, quadrupling TBB performance.
 
 Raw numbers come from Google-Benchmark; five independent runs show +-3% variance.
 

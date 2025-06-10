@@ -21,6 +21,7 @@
 #include <cstring>
 #include <mutex>
 #include <vector>
+#include <type_traits>
 
 #include "mutex.hpp"
 #include "utils/attributes.hpp"
@@ -56,7 +57,7 @@ public:
     {
         for (std::size_t i = 0; i < _pool_size; ++i)
         {
-            _available_objects[i] = &_nodes[i];
+            _available_objects[i] = reinterpret_cast<T*>(&_nodes[i]);
         }
     }
 
@@ -71,7 +72,9 @@ public:
      *
      * @return Pointer to an available object, or nullptr if none are available.
      */
-    SYNC_TOOLS_ALWAYS_INLINE T* acquire() noexcept
+    template <typename... Args>
+    SYNC_TOOLS_ALWAYS_INLINE T* acquire(Args&&... args) noexcept(
+        std::is_nothrow_constructible_v<T, Args...>)
     {
         std::scoped_lock lock(_mutex);
         if (SYNC_TOOLS_UNLIKELY(_available_count == 0))
@@ -81,6 +84,7 @@ public:
         T* obj = _available_objects[_head_index];
         _head_index = (_head_index + 1) & (_pool_size - 1);
         --_available_count;
+        new (obj) T(std::forward<Args>(args)...);
         return obj;
     }
 
@@ -91,6 +95,7 @@ public:
      */
     SYNC_TOOLS_ALWAYS_INLINE void release(T* obj) noexcept
     {
+        obj->~T();
         std::scoped_lock lock(_mutex);
         std::size_t tail = (_head_index + _available_count) & (_pool_size - 1);
         _available_objects[tail] = obj;
@@ -104,7 +109,9 @@ public:
      * @param max_count Maximum number of objects to acquire.
      * @return Actual number of objects acquired.
      */
-    SYNC_TOOLS_ALWAYS_INLINE std::size_t acquire_batch(T** out, std::size_t max_count) noexcept
+    template <typename... Args>
+    SYNC_TOOLS_ALWAYS_INLINE std::size_t acquire_batch(T** out, std::size_t max_count, Args&&... args) noexcept(
+        std::is_nothrow_constructible_v<T, Args...>)
     {
         std::scoped_lock lock(_mutex);
         std::size_t num = std::min(max_count, _available_count);
@@ -125,6 +132,10 @@ public:
         }
         _head_index = (_head_index + num) & (_pool_size - 1);
         _available_count -= num;
+        for (std::size_t i = 0; i < num; ++i)
+        {
+            new (out[i]) T(std::forward<Args>(args)...);
+        }
         return num;
     }
 
@@ -139,6 +150,10 @@ public:
         if (SYNC_TOOLS_UNLIKELY(num == 0))
         {
             return;
+        }
+        for (std::size_t i = 0; i < num; ++i)
+        {
+            items[i]->~T();
         }
         std::scoped_lock lock(_mutex);
         std::size_t tail = (_head_index + _available_count) & (_pool_size - 1);
@@ -190,7 +205,8 @@ private:
     std::size_t _available_count;       /**< Number of free objects. */
     Mutex _mutex;                       /**< Mutex protecting pool operations. */
 
-    std::vector<T> _nodes; /**< Underlying storage of objects. */
+    using storage_t = std::aligned_storage_t<sizeof(T), alignof(T)>;
+    std::vector<storage_t> _nodes; /**< Raw storage for objects. */
 };
 
 /**
@@ -226,12 +242,15 @@ public:
      *
      * @return Pointer to object or nullptr if none available.
      */
-    SYNC_TOOLS_ALWAYS_INLINE T* acquire() noexcept
+    template <typename... Args>
+    SYNC_TOOLS_ALWAYS_INLINE T* acquire(Args&&... args) noexcept(
+        std::is_nothrow_constructible_v<T, Args...>)
     {
         ThreadCache& cache = _get_thread_cache();
         if (SYNC_TOOLS_UNLIKELY(cache.cache_size == 0))
         {
-            std::size_t acquired = _global_pool.acquire_batch(cache.cache.data(), BatchSize);
+            std::size_t acquired =
+                _global_pool.acquire_batch(cache.cache.data(), BatchSize, std::forward<Args>(args)...);
             cache.cache_size = acquired;
         }
         if (SYNC_TOOLS_LIKELY(cache.cache_size > 0))

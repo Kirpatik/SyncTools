@@ -41,7 +41,39 @@ public:
 class NoDefaultConstructor
 {
 public:
-    explicit NoDefaultConstructor(int x) {}
+    explicit NoDefaultConstructor(int /*x*/) {}
 
     NoDefaultConstructor() = delete;
+};
+
+class DestructorCounter
+{
+public:
+    explicit DestructorCounter(int* counter) : _counter(counter) {}
+
+    DestructorCounter(const DestructorCounter&) = delete;
+    DestructorCounter& operator=(const DestructorCounter&) = delete;
+
+    DestructorCounter(DestructorCounter&& other) noexcept : _counter(other._counter) { other._counter = nullptr; }
+
+    DestructorCounter& operator=(DestructorCounter&& other) noexcept
+    {
+        if (this != &other)
+        {
+            _counter = other._counter;
+            other._counter = nullptr;
+        }
+        return *this;
+    }
+
+    ~DestructorCounter()
+    {
+        if (_counter)
+        {
+            ++(*_counter);
+        }
+    }
+
+private:
+    int* _counter;
 };
