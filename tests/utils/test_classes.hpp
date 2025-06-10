@@ -41,7 +41,7 @@ public:
 class NoDefaultConstructor
 {
 public:
-    explicit NoDefaultConstructor(int x) {}
+    explicit NoDefaultConstructor(int /*x*/) {}
 
     NoDefaultConstructor() = delete;
 };

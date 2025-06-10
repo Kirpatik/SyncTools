@@ -1,5 +1,7 @@
 # SyncTools - Header-Only Concurrency Utilities
 
+[![Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](#)
+
 > A small collection of header-only C++17 helpers - fast queues, a futex-powered mutex, and a couple of object pools.
 
 ## Table of Contents
@@ -25,6 +27,7 @@
 * **Object pools** - fast memory recycling with optional per-thread caches
 * **Futex-based High-Performance Mutex** - lightweight spin-then-block design with optional ThreadSanitizer & deadlock checks
 * Small footprint and comprehensive unit tests
+* CI builds on GCC & Clang with ~83% test coverage
 
 ## Quick Start
 

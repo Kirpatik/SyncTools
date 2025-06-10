@@ -83,7 +83,8 @@ public:
     {
         SYNC_TOOLS_TSAN_PRE_LOCK();
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-        if (_owner_set && pthread_equal(_owner, pthread_self()))
+        if (_owner_set.load(std::memory_order_acquire) &&
+            pthread_equal(_owner.load(std::memory_order_relaxed), pthread_self()))
         {
             assert(false && "Mutex deadlock: recursive lock");
         }
@@ -93,8 +94,8 @@ public:
                                                              std::memory_order_relaxed)))
         {
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-            _owner = pthread_self();
-            _owner_set = true;
+            _owner.store(pthread_self(), std::memory_order_relaxed);
+            _owner_set.store(true, std::memory_order_release);
 #endif
             SYNC_TOOLS_TSAN_POST_LOCK();
             return;
@@ -114,7 +115,8 @@ public:
     {
         SYNC_TOOLS_TSAN_PRE_LOCK();
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-        if (_owner_set && pthread_equal(_owner, pthread_self()))
+        if (_owner_set.load(std::memory_order_acquire) &&
+            pthread_equal(_owner.load(std::memory_order_relaxed), pthread_self()))
         {
             assert(false && "Mutex deadlock: recursive try_lock");
         }
@@ -125,8 +127,8 @@ public:
         if (got)
         {
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-            _owner = pthread_self();
-            _owner_set = true;
+            _owner.store(pthread_self(), std::memory_order_relaxed);
+            _owner_set.store(true, std::memory_order_release);
 #endif
             SYNC_TOOLS_TSAN_POST_LOCK();
         }
@@ -144,9 +146,10 @@ public:
     SYNC_TOOLS_ALWAYS_INLINE void unlock() noexcept SYNC_TOOLS_UNLOCK_FUNCTION()
     {
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-        assert(_owner_set && pthread_equal(_owner, pthread_self()) && "Mutex unlock: wrong thread");
-        _owner_set = false;
-        _owner = pthread_t{};
+        assert(_owner_set.load(std::memory_order_acquire) &&
+               pthread_equal(_owner.load(std::memory_order_relaxed), pthread_self()) && "Mutex unlock: wrong thread");
+        _owner_set.store(false, std::memory_order_release);
+        _owner.store(pthread_t{}, std::memory_order_relaxed);
 #endif
         SYNC_TOOLS_TSAN_PRE_UNLOCK();
 
@@ -181,8 +184,8 @@ private:
                                                                  std::memory_order_acquire, std::memory_order_relaxed)))
             {
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-                _owner = pthread_self();
-                _owner_set = true;
+                _owner.store(pthread_self(), std::memory_order_relaxed);
+                _owner_set.store(true, std::memory_order_release);
 #endif
                 SYNC_TOOLS_TSAN_POST_LOCK();
                 return;
@@ -197,8 +200,8 @@ private:
         }
 
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-        _owner = pthread_self();
-        _owner_set = true;
+        _owner.store(pthread_self(), std::memory_order_relaxed);
+        _owner_set.store(true, std::memory_order_release);
 #endif
         SYNC_TOOLS_TSAN_POST_LOCK();
     }
@@ -237,8 +240,8 @@ private:
     static constexpr std::size_t _spin_count{22}; /**< Max spin iterations before blocking. */
 
 #if defined(SYNC_TOOLS_HAS_TSAN) || defined(SYNC_TOOLS_ENABLE_DEADLOCK_CHECKS)
-    pthread_t _owner{};     /**< Thread ID of the owner for deadlock checks. */
-    bool _owner_set{false}; /**< Whether _owner is valid. */
+    std::atomic<pthread_t> _owner{};     /**< Thread ID of the owner for deadlock checks. */
+    std::atomic<bool> _owner_set{false}; /**< Whether _owner is valid. */
 #endif
 };
 
