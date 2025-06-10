@@ -279,7 +279,7 @@ public:
                 T result = *ptr;
                 ptr->~T();
                 cell.seq.store(pos + _size, std::memory_order_release);
-                return result;
+                return std::make_optional(result);
             }
         }
         return std::nullopt;

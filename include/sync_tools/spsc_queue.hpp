@@ -219,14 +219,14 @@ public:
             T result = std::move(*ptr);
             ptr->~T();
             _tail.store((tail + 1) & _mask, std::memory_order_release);
-            return result;
+            return std::make_optional(std::move(result));
         }
         else
         {
             T result = *ptr;
             ptr->~T();
             _tail.store((tail + 1) & _mask, std::memory_order_release);
-            return result;
+            return std::make_optional(result);
         }
     }
 
