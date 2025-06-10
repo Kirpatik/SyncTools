@@ -9,7 +9,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(benchmark)
 
-find_package(TBB REQUIRED CONFIG)
+FetchContent_Declare(
+  tbb
+  GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
+  GIT_TAG v2022.1.0
+)
+FetchContent_MakeAvailable(tbb)
 
 FetchContent_Declare(
   abseil
@@ -25,7 +30,7 @@ add_executable(benchmarks
     pool_benchmarks.cpp
 )
 
-target_link_libraries(benchmarks PRIVATE benchmark::benchmark TBB::tbb TBB::tbbmalloc absl::synchronization)
+target_link_libraries(benchmarks PRIVATE benchmark::benchmark tbb tbbmalloc absl::synchronization)
 target_include_directories(benchmarks PRIVATE ${CMAKE_SOURCE_DIR}/include/sync_tools)
 target_compile_options(benchmarks PRIVATE -O3 -march=native -flto -Wall -Wextra -Werror)
 target_link_options(benchmarks PRIVATE -flto)
