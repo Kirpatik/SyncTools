@@ -22,5 +22,5 @@ jobs:
         run: ./build/tests/tests
       - name: Coverage
         run: |
-          lcov --gcov-tool=llvm-cov --directory build --capture --output-file coverage.info --ignore-errors mismatch,negative
+          lcov --gcov-tool=llvm-cov --directory build --capture --output-file coverage.info --ignore-errors mismatch,negative --quiet
           lcov --summary coverage.info

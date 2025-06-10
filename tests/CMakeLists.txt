@@ -15,8 +15,8 @@ add_executable(tests
 )
 
 if(ENABLE_COVERAGE)
-  target_compile_options(tests PRIVATE -O0 --coverage -DSYNC_TOOLS_ENABLE_DEADLOCK_CHECKS -Wall -Wextra -Werror)
-  target_link_options(tests PRIVATE --coverage)
+  target_compile_options(tests PRIVATE -O0 --coverage -fprofile-update=atomic -DSYNC_TOOLS_ENABLE_DEADLOCK_CHECKS -Wall -Wextra -Werror)
+  target_link_options(tests PRIVATE --coverage -fprofile-update=atomic)
 else()
   target_compile_options(tests PRIVATE -O0 -fsanitize=thread -DSYNC_TOOLS_ENABLE_DEADLOCK_CHECKS -Wall -Wextra -Werror)
   target_link_options(tests PRIVATE -fsanitize=thread)
