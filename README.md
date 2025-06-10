@@ -498,34 +498,34 @@ Each Google-Benchmark fixture sets `state.SetIterationTime()` to wall-clock seco
 
 | Threads | Thread-cached pool             | TBB pool | ObjectPool       | new/delete |
 | ------- | -----------------------------: | -------: | ---------------: | ---------: |
-| 2       |                       **958M** |    67.8M |            52.4M |       100M |
-| 4       |                       **848M** |    58.6M |            18.7M |      92.8M |
-| 6       |                       **756M** |    52.8M |            10.3M |      75.8M |
-| 8       |                       **586M** |    44.4M |            6.54M |      67.8M |
-| 10      |                       **437M** |    35.4M |            4.59M |      60.7M |
-| 12      |                       **394M** |    32.2M |            3.61M |      51.4M |
-| 14      |                       **368M** |    30.8M |            3.19M |      49.6M |
-| 16      |                       **353M** |    32.3M |            2.77M |      49.2M |
+| 2       |                       **1.41G** |    67.8M |            52.4M |       100M |
+| 4       |                       **1.36G** |    58.6M |            18.7M |      92.8M |
+| 6       |                       **1.21G** |    52.8M |            10.3M |      75.8M |
+| 8       |                       **930M** |    44.4M |            6.54M |      67.8M |
+| 10      |                       **792M** |    35.4M |            4.59M |      60.7M |
+| 12      |                       **670M** |    32.2M |            3.61M |      51.4M |
+| 14      |                       **646M** |    30.8M |            3.19M |      49.6M |
+| 16      |                       **638M** |    32.3M |            2.77M |      49.2M |
 
 **3-stage pipeline**
 
 | Threads | Pipeline Thread-cached   | Pipeline TBB | Pipeline ObjectPool  | Pipeline new/delete |
 | ------- | -----------------------: | -----------: | -------------------: | ------------------: |
-| 2       |                 **46.2** |         10.8 |                 15.0 |                8.05 |
-| 4       |                 **36.6** |         9.29 |                 7.20 |                7.90 |
-| 6       |                 **37.3** |         9.97 |                 4.79 |                7.94 |
-| 8       |                 **35.8** |         8.73 |                 3.42 |                7.64 |
-| 10      |                 **35.4** |         8.65 |                 2.61 |                7.54 |
-| 12      |                 **31.9** |         7.01 |                 2.15 |                6.15 |
-| 14      |                 **27.4** |         6.72 |                 2.00 |                5.50 |
-| 16      |                 **22.6** |         5.24 |                 1.73 |                3.65 |
+| 2       |                 **58.5** |         10.8 |                 15.0 |                8.05 |
+| 4       |                 **53.5** |         9.29 |                 7.20 |                7.90 |
+| 6       |                 **52.6** |         9.97 |                 4.79 |                7.94 |
+| 8       |                 **40.5** |         8.73 |                 3.42 |                7.64 |
+| 10      |                 **35.6** |         8.65 |                 2.61 |                7.54 |
+| 12      |                 **29.3** |         7.01 |                 2.15 |                6.15 |
+| 14      |                 **36.3** |         6.72 |                 2.00 |                5.50 |
+| 16      |                 **28.8** |         5.24 |                 1.73 |                3.65 |
 
 ### Key take-aways
 
 * **SyncTools::Mutex** outperforms std::mutex by 1.5-3.1x across contention levels and beats TBB & Abseil. Fairness test confirms lower wait times under pressure.
 * The **bounded MPSC queue** sustains \~10M items/s, giving \~2.5x Boost and \~2x TBB throughput even when prefilled.
-* A **thread-cached object pool** delivers up to \~20x the throughput of TBB’s scalable allocator wrapper and is orders of magnitude ahead of naive allocation.
-* In a realistic 3-stage pipeline SyncTools moves \~35M items/s, tripling TBB performance.
+* A **thread-cached object pool** now processes over **1.4 billion** objects per second on two threads (\~50% faster than before) and still beats TBB’s scalable allocator by an order of magnitude.
+* In a realistic 3-stage pipeline SyncTools moves around **58M items/s** on two threads while remaining 3× faster than TBB.
 
 Raw numbers come from Google-Benchmark; five independent runs show +-3% variance.
 

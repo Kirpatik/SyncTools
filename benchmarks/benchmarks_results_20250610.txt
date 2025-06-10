@@ -1,0 +1,11 @@
+2025-06-10T19:15:05+03:00
+Running ./benchmarks/benchmarks
+Run on (12 X 3493.47 MHz CPU s)
+---------------------------------------------------------------------------------------------------------------------------------
+Benchmark                                                                                       Time             CPU   Iterations
+---------------------------------------------------------------------------------------------------------------------------------
+BM_AcquireRelease<SyncTools::ThreadCachedObjectPool<std::size_t>>/real_time/threads:2        744985 ns       776076 ns          904
+BM_AcquireRelease<SyncTools::ThreadCachedObjectPool<std::size_t>>/real_time/threads:4        769426 ns       801536 ns          916
+BM_AcquireRelease<SyncTools::ThreadCachedObjectPool<std::size_t>>/real_time/threads:6        869518 ns       905808 ns          720
+BM_AcquireRelease<SyncTools::ThreadCachedObjectPool<std::size_t>>/real_time/threads:8       1127211 ns      1174180 ns          672
+BM_AcquireRelease<SyncTools::ThreadCachedObjectPool<std::size_t>>/real_time/threads:16      1644229 ns      1497407 ns          496
