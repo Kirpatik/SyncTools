@@ -31,6 +31,6 @@ jobs:
       - name: Coverage
         if: matrix.compiler == 'gcc'
         run: |
-           - lcov --rc lcov_branch_coverage=1 --capture --directory build --output-file build/coverage.info
-           - lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '/usr/*' --output-file build/coverage_clean.info
-           - lcov --rc lcov_branch_coverage=1 --summary build/coverage_clean.info
+          lcov --rc lcov_branch_coverage=1 --capture --directory build --output-file build/coverage.info
+          lcov --rc lcov_branch_coverage=1 --remove build/coverage.info '/usr/*' --output-file build/coverage_clean.info
+          lcov --rc lcov_branch_coverage=1 --summary build/coverage_clean.info
